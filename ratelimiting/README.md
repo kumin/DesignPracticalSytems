@@ -26,6 +26,9 @@ It is apparent that total of requests beyond the threshold, so the requests come
 
 Following the above fomular we need to storage the number of request on the previous window and current window.
 I will choose the key-value database for this case and because these data read a lot of times in every request, so we need to cache these figure.
-I think Redis and Scylla DB are suitable for this situation.
+I think Redis and Scylla DB or Cassandra are suitable for this situation. I am going to use Redis as memory db and Scylla for persistent data, but in this case, I only use redis and do not need
+to storage permanent data because this data is not important. Our system can lose this data when Redis cluster down, but it is ok. I will take the risk. 
 
-Because the window size is 1 minute thus the key of data looklike **minute-timestamp:user-IP** and obviously, the values are a number of requests.
+Because the window size is 1 minute thus the key of data looklike **minute-timestamp:user-IP** and obviously, the values are a number of requests. You can design rate limiting on many level: global, network, http so on. In this article I just mention user-IP level.
+
+
