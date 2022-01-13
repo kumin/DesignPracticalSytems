@@ -29,6 +29,18 @@ I will choose the key-value database for this case and because these data read a
 I think Redis and Scylla DB or Cassandra are suitable for this situation. I am going to use Redis as memory db and Scylla for persistent data, but in this case, I only use redis and do not need
 to storage permanent data because this data is not important. Our system can lose this data when Redis cluster down, but it is ok. I will take the risk. 
 
-Because the window size is 1 minute thus the key of data looklike **minute-timestamp:user-IP** and obviously, the values are a number of requests. You can design rate limiting on many level: global, network, http so on. In this article I just mention user-IP level.
+Because the window size is 1 minute thus the key of data looklike **minute-timestamp:user-IP** and obviously, the values are a number of requests. You can design rate limiting on many level: global, network, http so on. In this article I just mention global user-IP level for a service.
 
+Nowadays, Microservices architecture is very popular, so a service will has many replication and one replication can handle parallel requests at the same time for scalability purpose. Every request needs to call rate limiter to check total of requests. It means this system will be able to handle a huge requests at the same time. 
+Moreover, it is apparent that we need a global request counting, so we will centralize storage and in this case, we use Redis storage. It easily lead to the rate limiting system will be bottle-neck or and not scale well. 
+We maybe have to scop with some challenges.
 
+#### Challenges
+
+On every user request we have to update the number of requests for users, so It needs to resolve **Race Conddition** problem which means that updating users' total requests has to an atomic operation.
+Because our rate limiting system have to handle a lot of request if it is slow, our sevice latency will be increased significantly. We must optimize it to response on less than 0.1 second.
+
+#### Solutions
+
+To address the Race conddition problem we need to synchonized update number of requests or in other words we will use an atomic operation to update this figure. If we use Redis for storaging It's operation **SET** is already an atomic operation.
+We have may way to deal with hotspot and optimize latency of rate limiter system. In this article, I suggest an approach, which we will storaging the number of requests of every user on local replication service and push them to database after interval time. This interval time can config short or long depending on your practical resource and demanding.
