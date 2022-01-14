@@ -44,3 +44,5 @@ Because our rate limiting system have to handle a lot of request if it is slow, 
 
 To address the Race conddition problem we need to synchonized update number of requests or in other words we will use an atomic operation to update this figure. If we use Redis for storaging It's operation **SET** is already an atomic operation.
 We have may way to deal with hotspot and optimize latency of rate limiter system. In this article, I suggest an approach, which we will storaging the number of requests of every user on local replication service and push them to database after interval time. This interval time can config short or long depending on your practical resource and demanding.
+
+<img alt='architecture' src='./rate-limiter.png'>
